@@ -1,0 +1,42 @@
+<html>
+    <head>
+        <title>Links</title>
+        <link href="{{ url_for('static', path='/assets.css') }}" rel="stylesheet">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    </head>
+    <body>
+        <div class="top-bar shadow p-3 mb-5">
+            <form action="/auth/logout" method="post">
+                <button type="submit" class="btn btn-outline-secondary"
+                        name="delete_user" value="0">Log out</button>
+                <button type="submit" class="btn btn-outline-danger"
+                        name="delete_user" value="1">Log out and delete account</button>
+            </form>
+        </div>
+        <div class="container mt-3"
+        <div class="col col-md-6 offset-md-2">
+        <a href="/links/download" class="btn btn-link">Download all</a>
+        <ul class="list-group list-group-flush">
+            {% for link in links %}
+            <li class="list-group-item">
+                 {{ link.url }}
+                <form action="/links/{{link.id}}/delete" method="post">
+                    <button type="submit" class="btn btn-outline-danger">Delete</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+        <form action="/links/create" method="post">
+            <div class="form-group">
+                <label for="id_url">Add a new link (http/https only)</label>
+                <input class="form-control" type="url" name="url" id="id_url" required value="{{url}}" />
+                {% if error %}
+                <small class="form-text text-danger">{{error}}</small>
+                {% endif %}
+            </div>
+            <button class="btn btn-outline-primary" type="submit">Save</button>
+        </form>
+        </div>
+        </div>
+    </body>
+</html>

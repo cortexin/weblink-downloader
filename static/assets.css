@@ -1,0 +1,13 @@
+.top-bar {
+    height: 50px;
+    display: flex;
+    background-color: #99b0ff;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.action-group {
+    margin-top: 2em;
+    display: flex;
+    justify-content: space-between;
+}
