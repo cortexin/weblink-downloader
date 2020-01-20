@@ -1,5 +1,8 @@
+from socket import gaierror
+
 import httpx
 from httpx.exceptions import NetworkError, ConnectTimeout, HTTPError
+
 from link_downloader.exceptions import UrlInvalid
 
 
@@ -12,5 +15,5 @@ async def validate_url(url: str) -> None:
         try:
             res = await client.head(url)
             res.raise_for_status()
-        except (NetworkError, ConnectTimeout, HTTPError):
+        except (NetworkError, ConnectTimeout, HTTPError, gaierror):
             raise UrlInvalid
