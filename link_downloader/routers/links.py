@@ -7,6 +7,7 @@ from starlette.responses import FileResponse, RedirectResponse
 from link_downloader.exceptions import UrlInvalid
 from link_downloader.models import database, links
 from link_downloader.services import auth, download_links
+from link_downloader.services.links import get_links_for_user
 from link_downloader.validation import validate_url
 from .templates import templates
 
@@ -19,8 +20,7 @@ async def list_links(request: Request, fastapi_auth: str = Cookie('')):
     if not user_id:
         raise HTTPException(status_code=401, detail='Unauthorized')
 
-    query = links.select(links.c.user_id == user_id)
-    link_list = await database.fetch_all(query)
+    link_list = await get_links_for_user(user_id)
 
     return templates.TemplateResponse(
         'links.html',
@@ -42,12 +42,14 @@ async def create_link(
     try:
         await validate_url(url)
     except UrlInvalid as e:
+        link_list = await get_links_for_user(user_id)
         return templates.TemplateResponse(
             'links.html',
             {
                 'request': request,
                 'url': url,
-                'error': str(e)
+                'error': e.__doc__,
+                'links': link_list,
             }
         )
 

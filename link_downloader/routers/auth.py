@@ -35,7 +35,7 @@ async def register(
     except UsernameExists as e:
         return templates.TemplateResponse(
             'register.html',
-            {'request': request, 'error': str(e)}
+            {'request': request, 'error': e.__doc__}
         )
 
     response = RedirectResponse('/links', status_code=302)
