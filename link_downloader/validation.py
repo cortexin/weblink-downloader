@@ -1,5 +1,5 @@
 import httpx
-from httpx.exceptions import NetworkError, ConnectTimeout
+from httpx.exceptions import NetworkError, ConnectTimeout, HTTPError
 from link_downloader.exceptions import UrlInvalid
 
 
@@ -11,8 +11,6 @@ async def validate_url(url: str) -> None:
     async with httpx.AsyncClient() as client:
         try:
             res = await client.head(url)
-        except (NetworkError, ConnectTimeout):
-            raise UrlInvalid
-
-        if res.status_code != 200:
+            res.raise_for_status()
+        except (NetworkError, ConnectTimeout, HTTPError):
             raise UrlInvalid

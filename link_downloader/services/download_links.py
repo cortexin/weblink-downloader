@@ -5,17 +5,15 @@ from typing import Dict, List, Optional
 from zipfile import ZipFile
 
 import httpx
+from httpx.exceptions import ConnectTimeout, NetworkError, HTTPError
 
 
 async def main(urls: List[str]):
     buffer = io.BytesIO()
 
     with ZipFile(buffer, 'a') as f:
-        async for _, filename, content in download_files(urls):
+        async for filename, content in download_files(urls):
             f.writestr(filename, content)
-
-    with open('1.zip', 'wb') as f:
-        f.write(buffer.getvalue())
     return buffer
 
 
@@ -27,11 +25,14 @@ async def download_files(urls: List[str]):
         ]
 
         for future in asyncio.as_completed(futures):
-            response = await future
+            try:
+                response = await future
+                response.raise_for_status()
+            except (NetworkError, ConnectTimeout, HTTPError):
+                continue  # TODO: return an error message to the client
+
             filename = get_filename(response)
-            print('----', response.url)
-            print('filename', filename)
-            yield (1, filename, response.content)
+            yield (filename, response.content)
 
 
 def get_filename(response) -> str:
