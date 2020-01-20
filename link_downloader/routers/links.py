@@ -1,6 +1,8 @@
+import tempfile
+
 from fastapi import APIRouter, Cookie, Form, HTTPException
 from starlette.requests import Request
-from starlette.responses import StreamingResponse, FileResponse, RedirectResponse
+from starlette.responses import FileResponse, RedirectResponse
 
 from link_downloader.exceptions import UrlInvalid
 from link_downloader.models import database, links
@@ -70,17 +72,14 @@ async def delete_link(link_id: int, fastapi_auth: str = Cookie('')):
 
 @router.get('/download')
 async def download_files():
-    import tempfile
     query = links.select().column(links.c.url)
     urls = [
         rec['url'] for rec in await database.fetch_all(query)
     ]
     archived_files = await download_links.main(urls)
+
+    # TODO: figure out a way to stream ZIP on the fly without waiting
+    # for all urls to be downloaded and archived
     with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as f:
         f.write(archived_files.getvalue())
         return FileResponse(f.name, media_type='application/zip')
-    # return StreamingResponse(
-    #     archived_files,
-    #     media_type='application/zip',
-    #     headers={'Content-Disposition': 'attachment; filename="files.zip"'}
-    # )
