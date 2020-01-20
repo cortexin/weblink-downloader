@@ -9,6 +9,8 @@ tox = "*"
 coverage = "*"
 pytest = "*"
 pytest-runner = "*"
+pytest-asyncio = "*"
+pytest-mock = "*"
 
 [packages]
 fastapi = "*"

@@ -49,7 +49,7 @@ def log_user_in(user_id: int, response: Response) -> None:
 
 def get_user_id_from_cookie(cookie: str) -> Optional[int]:
     values = cookie.split(':')
-    if len(values) != 2:
+    if not (len(values) == 2 and values[0].isdigit()):
         return
 
     user_id, request_signature = values
