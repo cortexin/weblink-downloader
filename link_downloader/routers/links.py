@@ -78,10 +78,10 @@ async def download_files():
     urls = [
         rec['url'] for rec in await database.fetch_all(query)
     ]
-    archived_files = await download_links.main(urls)
+    zipfile_path = await download_links.download_links_to_zip(urls)
 
-    # TODO: figure out a way to stream ZIP on the fly without waiting
-    # for all urls to be downloaded and archived
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as f:
-        f.write(archived_files.getvalue())
-        return FileResponse(f.name, media_type='application/zip')
+    return FileResponse(
+        zipfile_path,
+        media_type='application/zip',
+        background=lambda: download_links.remove_tempfile(zipfile_path),
+    )

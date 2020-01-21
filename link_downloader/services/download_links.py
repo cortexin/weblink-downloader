@@ -1,29 +1,41 @@
 import asyncio
 import cgi
-import io
-from typing import Dict, List, Optional
+import os
+import tempfile
+from typing import Dict, List, Optional, Tuple
 from zipfile import ZipFile
 
 import httpx
 from httpx.exceptions import ConnectTimeout, NetworkError, HTTPError
 
 
-async def main(urls: List[str]):
-    buffer = io.BytesIO()
+async def download_files_to_zip(urls: List[str]) -> str:
+    loop = asyncio.get_event_loop()
 
-    with ZipFile(buffer, 'a') as f:
-        async for filename, content in download_files(urls):
-            f.writestr(filename, content)
-    return buffer
+    files = [f async for f in download_files(urls)]
+
+    return await loop.run_in_executor(None, write_files_to_zip, files)
 
 
-async def download_files(urls: List[str]):
+def write_files_to_zip(files: List[Tuple[str, bytes]]) -> str:
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as f:
+        with ZipFile(f, 'w') as zipf:
+            for filename, content in files:
+                zipf.writestr(filename, content)
+
+        return f.name
+
+
+async def remove_tempfile(file_path: str) -> None:
+    os.remove(file_path)
+
+
+async def download_files(urls: List[str]) -> List[Tuple[str, bytes]]:
     async with httpx.AsyncClient(timeout=10) as client:
         futures = [
             client.get(url)
             for url in urls
         ]
-
         for future in asyncio.as_completed(futures):
             try:
                 response = await future

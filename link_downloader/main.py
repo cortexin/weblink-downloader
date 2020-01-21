@@ -1,3 +1,6 @@
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+
 from fastapi import FastAPI
 from starlette.staticfiles import StaticFiles
 
@@ -14,6 +17,9 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.on_event('startup')
 async def startup_handler():
     await database.connect()
+    loop = asyncio.get_event_loop()
+    executor = ThreadPoolExecutor()
+    loop.set_default_executor(executor)
 
 
 @app.on_event('shutdown')
